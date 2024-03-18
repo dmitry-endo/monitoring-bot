@@ -19,6 +19,6 @@
 
 ## Usage
 
-1. Add this bot as an Admin to the specified chat and make sure it `has access to messages` rights, which ID you used in `.env` file or ignore this if you use direct chat with bot.
+1. Add this bot as an Admin to the specified chat, which ID you used in `.env` file, and make sure it `has access to messages` rights or simply ignore this if you chose direct chat with bot.
 
 2. Add this bot as an Admin to the chats you need to monitor and make sure it `has access to messages` rights.
