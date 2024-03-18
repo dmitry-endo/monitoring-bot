@@ -1,0 +1,5 @@
+# Place your bot token here
+BOT_TOKEN=1234567890:AaBbCcDdEeFGgHhIiJjKkLlMmNnOoPpQq
+
+# Place your chat ID for notifications here
+NOTIF_CHAT_ID=-987654321
