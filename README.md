@@ -7,15 +7,29 @@
 
 ## Installation
 
-1. Clone the repo.
+- Clone the repo
 
-2. Move to the cloned directory and create `venv` (Python virtual enviroment) `python3.10 -m venv venv`.
+- Move to the cloned directory and create `venv` (Python virtual enviroment) by:
+   ```
+   python3.10 -m venv venv
+   ```
 
-3. Activate the venv `source venv/bin/activate` and install all dependencies from requirements file `pip install -r requirements.txt.
+- Activate the venv by:
+   ```
+   source venv/bin/activate
+   ```
+   
+- Install all dependencies from requirements file by:
+   ```
+   pip install -r requirements.txt
+   ```
+   
+- Rename `env_example` file to `.env` and replace `BOT_TOKEN` and `NOTIF_CHAT_ID` inside the file with your own values (don't forget to save the file)
 
-4. Rename `env_example` file to `.env` and replace `BOT_TOKEN` and `NOTIF_CHAT_ID` with your own values (don't forget to save the file).
-
-5. Start the bot inside the venv by: `python bot.py`.
+- Start the bot inside the venv by:
+  ```
+  python bot.py
+  ```
 
 ## Usage
 
