@@ -52,7 +52,7 @@ async def on_startup():
 
 
 async def main():
-    dp.startup.register(on_startup())
+    dp.startup.register(on_startup)
 
     await dp.start_polling(bot, allowed_updates=['chat_member'])
 
