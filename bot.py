@@ -24,7 +24,7 @@ dp.include_router(event_monitoring.router)
 
 
 # Func for bot status messages every morning to make sure it's still running
-async def send_daily_status_msg():
+async def send_delete_daily_status_msg():
     tz = pytz.timezone("Europe/Moscow")
     while True:
         now = datetime.now(tz)
@@ -38,17 +38,22 @@ async def send_daily_status_msg():
         await asyncio.sleep(wait_time)
 
         try:
-            await bot.send_message(
+            message = await bot.send_message(
                 chat_id=NOTIF_CHAT_ID,
                 text=f"Hey, I'm still running successfully!\nNo need to worry about me."
             )
             logging.info(f"Sent message at {datetime.now(tz)}")
+
+            # Schedule the message for deletion after 24 hours
+            await asyncio.sleep(86400)  # 24 hours in seconds
+            await bot.delete_message(NOTIF_CHAT_ID, message.message_id)
+            logging.info(f"Deleted message at {datetime.now(tz)}")
         except Exception as e:
             logging.error(f"Failed to send message: {e}")
 
 
 async def on_startup():
-    asyncio.create_task(send_daily_status_msg())
+    asyncio.create_task(send_delete_daily_status_msg())
 
 
 async def main():
