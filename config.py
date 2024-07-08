@@ -11,3 +11,6 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 # Just specify its ID in .env file
 # Also make sure the bot can send messages inside group chats if those are chosen
 NOTIF_CHAT_ID = os.getenv('NOTIF_CHAT_ID')
+
+# Corresponding path to the file is created via Dockerfile
+MESSAGE_IDS_FILE = '/var/lib/monitoring-bot/message_ids.json'

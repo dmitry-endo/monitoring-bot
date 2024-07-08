@@ -11,6 +11,9 @@ from handlers import event_monitoring
 from config import BOT_TOKEN, NOTIF_CHAT_ID
 
 
+# Corresponding path to the file is created via Dockerfile
+MESSAGE_IDS_FILE = '/var/lib/monitoring-bot/message_ids.json'
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -25,9 +28,27 @@ dp = Dispatcher()
 dp.include_router(event_monitoring.router)
 
 
+# Reads the list of message IDs from a JSON file if exists
+def load_message_ids():
+    if os.path.exists(MESSAGE_IDS_FILE):
+        with open(MESSAGE_IDS_FILE, 'r') as file:
+            return json.load(file)
+    return []
+
+
+# Writes the list of message IDs to a JSON file
+def save_message_ids(message_ids):
+    with open(MESSAGE_IDS_FILE, 'w') as file:
+        json.dump(message_ids, file)
+
+
 # Func for bot status messages every morning to make sure it's still running
 async def daily_status_messages():
+    # load ids that have been stored
+    message_ids = load_message_ids()
+    # setup the local timezone
     local_tz = timezone("Europe/Moscow")
+
     while True:
         now = datetime.now(local_tz)
         target_time = datetime.combine(
@@ -46,18 +67,48 @@ async def daily_status_messages():
             )
             logging.info(f"Sent message at {datetime.now(local_tz)}")
 
+            # Message ID var
+            msg_id = message.message_id
+
+            # Store message ID
+            message_ids.append(msg_id)
+            save_message_ids(message_ids)
+
             # Schedule the message for deletion after 24 hours
             await asyncio.sleep(86400)  # 24 hours in seconds
             await bot.delete_message(
                 chat_id=NOTIF_CHAT_ID,
-                message_id=message.message_id
+                message_id=msg_id
             )
             logging.info(f"Deleted message at {datetime.now(local_tz)}")
+
+            # Remove message ID from the list
+            message_ids.remove(msg_id)
+            save_message_ids(message_ids)
         except Exception as e:
-            logging.error(f"Failed to send message: {e}")
+            logging.error(f"Failed to send or delete message: {e}")
 
 
+async def delete_old_messages():
+    message_ids = load_message_ids()
+    for msg_id in message_ids:
+        try:
+            await bot.delete_message(
+                chat_id=NOTIF_CHAT_ID,
+                message_id=msg_id
+            )
+            logging.info(f"Deleted message with ID {msg_id}")
+        except Exception as e:
+            logging.error(f"Failed to delete message with ID {msg_id}: {e}")
+
+    # Clear the list of message IDs
+    message_ids.clear()
+    save_message_ids(message_ids)
+
+
+# Deletes all stored messages and starts the daily_status_messages() task
 async def on_startup():
+    await delete_old_messages()
     asyncio.create_task(daily_status_messages())
 
 
