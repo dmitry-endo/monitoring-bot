@@ -1,9 +1,11 @@
 import asyncio
-from datetime import datetime, timedelta
 import logging
+import json
+import os
 
 from aiogram import Bot, Dispatcher
-import pytz
+from datetime import datetime, timedelta
+from pytz import timezone
 
 from handlers import event_monitoring
 from config import BOT_TOKEN, NOTIF_CHAT_ID
@@ -24,13 +26,13 @@ dp.include_router(event_monitoring.router)
 
 
 # Func for bot status messages every morning to make sure it's still running
-async def send_delete_daily_status_msg():
-    tz = pytz.timezone("Europe/Moscow")
+async def daily_status_messages():
+    local_tz = timezone("Europe/Moscow")
     while True:
-        now = datetime.now(tz)
+        now = datetime.now(local_tz)
         target_time = datetime.combine(
             now.date(), datetime.min.time()) + timedelta(hours=8)  # 8 AM
-        target_time = tz.localize(target_time)
+        target_time = local_tz.localize(target_time)
         if now >= target_time:
             target_time += timedelta(days=1)
 
@@ -40,20 +42,23 @@ async def send_delete_daily_status_msg():
         try:
             message = await bot.send_message(
                 chat_id=NOTIF_CHAT_ID,
-                text=f"Hey, I'm still running successfully!\nNo need to worry about me."
+                text="Status: OK!"
             )
-            logging.info(f"Sent message at {datetime.now(tz)}")
+            logging.info(f"Sent message at {datetime.now(local_tz)}")
 
             # Schedule the message for deletion after 24 hours
             await asyncio.sleep(86400)  # 24 hours in seconds
-            await bot.delete_message(NOTIF_CHAT_ID, message.message_id)
-            logging.info(f"Deleted message at {datetime.now(tz)}")
+            await bot.delete_message(
+                chat_id=NOTIF_CHAT_ID,
+                message_id=message.message_id
+            )
+            logging.info(f"Deleted message at {datetime.now(local_tz)}")
         except Exception as e:
             logging.error(f"Failed to send message: {e}")
 
 
 async def on_startup():
-    asyncio.create_task(send_delete_daily_status_msg())
+    asyncio.create_task(daily_status_messages())
 
 
 async def main():
