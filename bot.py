@@ -8,8 +8,11 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from handlers import event_monitoring
-from config import BOT_TOKEN, NOTIF_CHAT_ID, MESSAGE_IDS_FILE
+from config import BOT_TOKEN, NOTIF_CHAT_ID
 
+
+# Corresponding path to the file is created via Dockerfile
+MESSAGE_IDS_FILE = '/var/lib/monitoring-bot/message_ids.json'
 
 # Configure logging
 logging.basicConfig(
