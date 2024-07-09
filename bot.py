@@ -8,11 +8,8 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from handlers import event_monitoring
-from config import BOT_TOKEN, NOTIF_CHAT_ID
+from config import BOT_TOKEN, NOTIF_CHAT_ID, MESSAGE_IDS_FILE
 
-
-# Corresponding path to the file is created via Dockerfile
-MESSAGE_IDS_FILE = '/var/lib/monitoring-bot/message_ids.json'
 
 # Configure logging
 logging.basicConfig(
@@ -61,9 +58,6 @@ async def daily_status_messages():
         await asyncio.sleep(wait_time)
 
         try:
-            # Clear old status messages before sending the new one
-            await delete_old_messages()
-
             message = await bot.send_message(
                 chat_id=NOTIF_CHAT_ID,
                 text="Status: OK!"
@@ -110,8 +104,9 @@ async def delete_old_messages():
 
 
 # Deletes all stored messages and starts the daily_status_messages() task
+# TN: A message can only be deleted if it was sent less than 48 hours ago
 async def on_startup():
-    # await delete_old_messages()
+    await delete_old_messages()
     asyncio.create_task(daily_status_messages())
 
 
