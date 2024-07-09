@@ -58,6 +58,9 @@ async def daily_status_messages():
         await asyncio.sleep(wait_time)
 
         try:
+            # Clear old status messages before sending the new one
+            await delete_old_messages()
+
             message = await bot.send_message(
                 chat_id=NOTIF_CHAT_ID,
                 text="Status: OK!"
@@ -67,7 +70,7 @@ async def daily_status_messages():
             # Message ID var
             msg_id = message.message_id
 
-            # Store message ID
+            # Store newest message ID
             message_ids.append(msg_id)
             save_message_ids(message_ids)
 
@@ -105,7 +108,7 @@ async def delete_old_messages():
 
 # Deletes all stored messages and starts the daily_status_messages() task
 async def on_startup():
-    await delete_old_messages()
+    # await delete_old_messages()
     asyncio.create_task(daily_status_messages())
 
 
