@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from handlers import event_monitoring
-from config import BOT_TOKEN, NOTIF_CHAT_ID, MESSAGE_IDS_FILE
+from config import BOT_TOKEN, NOTIF_CHAT_ID, MESSAGE_IDS_FILE, MESSAGE_IDS_FILE_PATH
 
 
 # Configure logging
@@ -27,6 +27,11 @@ dp.include_router(event_monitoring.router)
 
 # Reads the list of message IDs from a JSON file if exists
 def load_message_ids():
+    # Creates the directory if it somehow doesn't exist in container,
+    # or if the bot is running locally
+    if not os.path.exists(MESSAGE_IDS_FILE_PATH):
+        os.makedirs(MESSAGE_IDS_FILE_PATH)
+
     if os.path.exists(MESSAGE_IDS_FILE):
         with open(MESSAGE_IDS_FILE, 'r') as file:
             return json.load(file)
