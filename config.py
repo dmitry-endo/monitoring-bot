@@ -14,3 +14,6 @@ NOTIF_CHAT_ID = os.getenv('NOTIF_CHAT_ID')
 
 # Corresponding path to the file is created via Dockerfile
 MESSAGE_IDS_FILE = '/var/lib/monitoring-bot/message_ids.json'
+
+# Path to the MESSAGE_IDS_FILE for running this bot locally
+MESSAGE_IDS_FILE_PATH = '/var/lib/monitoring-bot'
