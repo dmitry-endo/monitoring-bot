@@ -4,7 +4,7 @@ import json
 import os
 
 from aiogram import Bot, Dispatcher
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from pytz import timezone
 
 from handlers import event_monitoring
@@ -76,8 +76,11 @@ async def daily_status_messages():
             message_ids.append(msg_id)
             save_message_ids(message_ids)
 
-            # Schedule the message for deletion after 24 hours
-            await asyncio.sleep(86400)  # 24 hours in seconds
+            # Setup the delay for message deletion
+            delete_msg_delay = timedelta(hours=23, minutes=55)
+
+            # Schedule the message for deletion after delete_msg_delay value in seconds
+            await asyncio.sleep(delete_msg_delay.total_seconds())
             await bot.delete_message(
                 chat_id=NOTIF_CHAT_ID,
                 message_id=msg_id
