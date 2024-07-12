@@ -7,4 +7,3 @@ venv/
 Dockerfile
 
 test*
-message_ids.json
