@@ -19,12 +19,6 @@ def answer_message(event_user: User, event_chat: Chat, event_time: datetime, eve
         f'Username: {username}\n'
         f'User ID: {event_user.id}\n\n'
 
-        f'{event.old_chat_member}\n\n'
-        f'{event.new_chat_member}\n\n'
-        f'Link: {event.invite_link}\n\n'
-        f'Chat link: {event.via_chat_folder_invite_link}\n\n'
-        f'Performer of the action: {event.from_user}\n\n'
-
         f'{event_chat.type.capitalize()} title: {event_chat.title}\n'
         f'{event_chat.type.capitalize()} ID: {event_chat.id}\n\n'
 
