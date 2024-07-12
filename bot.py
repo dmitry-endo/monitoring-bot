@@ -4,7 +4,7 @@ import json
 import os
 
 from aiogram import Bot, Dispatcher
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 from pytz import timezone
 
 from handlers import event_monitoring
@@ -27,13 +27,15 @@ dp.include_router(event_monitoring.router)
 
 # Reads the list of message IDs from a JSON file if exists
 def load_message_ids():
-    # Creates the directory if it somehow doesn't exist in container,
-    # or if the bot is running locally
+    # Creates the directory if it somehow doesn't exist in container
     if not os.path.exists(MESSAGE_IDS_FILE_PATH):
         os.makedirs(MESSAGE_IDS_FILE_PATH)
 
-    if os.path.exists(MESSAGE_IDS_FILE):
-        with open(MESSAGE_IDS_FILE, 'r') as file:
+    # Combines the path and the file name for easier configuration
+    full_file_path = os.path.join(MESSAGE_IDS_FILE_PATH, MESSAGE_IDS_FILE)
+
+    if os.path.exists(full_file_path):
+        with open(full_file_path, 'r') as file:
             return json.load(file)
     return []
 
