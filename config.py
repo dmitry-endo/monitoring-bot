@@ -18,3 +18,6 @@ MESSAGE_IDS_FILE = 'message_ids.json'
 # Path to the MESSAGE_IDS_FILE
 # Created via Dockerfile and Python itself for more robust approach
 MESSAGE_IDS_FILE_PATH = '/var/lib/monitoring-bot'
+
+# Local timezone
+LOCAL_TZ = 'Europe/Moscow'
