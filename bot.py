@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 from handlers import event_monitoring
-from config import BOT_TOKEN, NOTIF_CHAT_ID, MESSAGE_IDS_FILE, MESSAGE_IDS_FILE_PATH
+from config import BOT_TOKEN, NOTIF_CHAT_ID, MESSAGE_IDS_FILE, MESSAGE_IDS_FILE_PATH, LOCAL_TZ
 
 
 # Configure logging
@@ -16,6 +16,11 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
+
+# setup the local timezone
+local_tz = timezone(LOCAL_TZ)
+# Combines the path and the file name for easier configuration
+full_file_path = os.path.join(MESSAGE_IDS_FILE_PATH, MESSAGE_IDS_FILE)
 
 # Init Bot and Dispatcher
 bot = Bot(token=BOT_TOKEN)
@@ -32,7 +37,7 @@ def load_message_ids():
         os.makedirs(MESSAGE_IDS_FILE_PATH)
 
     # Combines the path and the file name for easier configuration
-    full_file_path = os.path.join(MESSAGE_IDS_FILE_PATH, MESSAGE_IDS_FILE)
+    # full_file_path = os.path.join(MESSAGE_IDS_FILE_PATH, MESSAGE_IDS_FILE)
 
     if os.path.exists(full_file_path):
         with open(full_file_path, 'r') as file:
@@ -42,16 +47,14 @@ def load_message_ids():
 
 # Writes the list of message IDs to a JSON file
 def save_message_ids(message_ids):
-    with open(MESSAGE_IDS_FILE, 'w') as file:
+    with open(full_file_path, 'w') as file:
         json.dump(message_ids, file)
 
 
 # Func for bot status messages every morning to make sure it's still running
 async def daily_status_messages():
-    # load ids that have been stored
+    # Load ids that have been stored
     message_ids = load_message_ids()
-    # setup the local timezone
-    local_tz = timezone("Europe/Moscow")
 
     while True:
         now = datetime.now(local_tz)
@@ -67,9 +70,11 @@ async def daily_status_messages():
         try:
             message = await bot.send_message(
                 chat_id=NOTIF_CHAT_ID,
-                text="Status: OK!"
+                # text='Status: Running!'
+                text="✅ Info 💛 bot is still running!"
             )
-            logging.info(f"Sent message at {datetime.now(local_tz)}")
+            logging.info(
+                f"Sent status message with ID {message.message_id} at {datetime.now(local_tz)}")
 
             # Message ID var
             msg_id = message.message_id
@@ -87,36 +92,76 @@ async def daily_status_messages():
                 chat_id=NOTIF_CHAT_ID,
                 message_id=msg_id
             )
-            logging.info(f"Deleted message at {datetime.now(local_tz)}")
+            logging.info(
+                f"Deleted status message with ID {msg_id} at {datetime.now(local_tz)}")
 
             # Remove message ID from the list
             message_ids.remove(msg_id)
             save_message_ids(message_ids)
         except Exception as e:
-            logging.error(f"Failed to send or delete message: {e}")
+            logging.error(
+                f"Failed to send or delete status message: {e}")
 
 
-async def delete_old_messages():
+# Clears all old status messages and sends new startup status message
+async def startup_routine():
     message_ids = load_message_ids()
+
     for msg_id in message_ids:
         try:
+            # TN: A message can only be deleted if it was sent less than 48 hours ago
             await bot.delete_message(
                 chat_id=NOTIF_CHAT_ID,
                 message_id=msg_id
             )
-            logging.info(f"Deleted message with ID {msg_id}")
+            logging.info(f"Deleted old status message with ID {msg_id}")
         except Exception as e:
-            logging.error(f"Failed to delete message with ID {msg_id}: {e}")
+            logging.error(
+                f"Failed to delete old status message with ID {msg_id}: {e}")
 
     # Clear the list of message IDs
     message_ids.clear()
+
+    # Send new startup status message after restart
+    try:
+        message = await bot.send_message(
+            chat_id=NOTIF_CHAT_ID,
+            # text='Status: Restarted!'
+            text="✅ Info 💛 bot has been restarted!"
+        )
+        logging.info(
+            f"Sent startup status message with ID {message.message_id} at {datetime.now(local_tz)}")
+
+        message_ids.append(message.message_id)
+    except Exception as e:
+        logging.error(f"Failed to send startup status message: {e}")
+
     save_message_ids(message_ids)
 
 
-# Deletes all stored messages and starts the daily_status_messages() task
-# TN: A message can only be deleted if it was sent less than 48 hours ago
+# Func to send status message with starting the bot instance
+# This functionality was moved to startup_routine()
+async def startup_status_message():
+    message_ids = load_message_ids()
+
+    try:
+        message = await bot.send_message(
+            chat_id=NOTIF_CHAT_ID,
+            text='Status: Restarted!'
+            # text="I'm alive now 😊"
+        )
+        logging.info(
+            f"Sent startup status message with ID {message.message_id} at {datetime.now(local_tz)}")
+
+        message_ids.append(message.message_id)
+        save_message_ids(message_ids)
+    except Exception as e:
+        logging.error(f"Failed to send startup status message: {e}")
+
+
+# Awaits startup_routine() and schedules the daily_status_messages() task
 async def on_startup():
-    await delete_old_messages()
+    await startup_routine()
     asyncio.create_task(daily_status_messages())
 
 
