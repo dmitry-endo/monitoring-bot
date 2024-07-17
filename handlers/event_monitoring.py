@@ -6,12 +6,13 @@ from aiogram.filters.chat_member_updated import \
 from aiogram.types import ChatMemberUpdated
 
 # Load ID with the specified chat for notifications
-from config import NOTIF_CHAT_ID
+from config import NOTIF_CHAT_ID, LOCAL_TZ
 from .answer_template import answer_message
 
 router = Router()
 
-utc_plus3 = timezone("Europe/Moscow")
+# setup the local timezone
+local_tz = timezone(LOCAL_TZ)
 
 
 # Handler for join or promotion as an Admin events
@@ -24,7 +25,7 @@ async def event_is_admin(event: ChatMemberUpdated, bot: Bot):
     user = event.new_chat_member.user
     chat = event.chat
     # Convert naive time to UTC+3
-    local_event_datetime = event.date.astimezone(utc_plus3)
+    local_event_datetime = event.date.astimezone(local_tz)
 
     if event.old_chat_member.status == MEMBER or +RESTRICTED:
         await bot.send_message(
@@ -49,7 +50,7 @@ async def event_is_admin(event: ChatMemberUpdated, bot: Bot):
 async def event_is_member(event: ChatMemberUpdated, bot: Bot):
     user = event.new_chat_member.user
     chat = event.chat
-    local_event_datetime = event.date.astimezone(utc_plus3)
+    local_event_datetime = event.date.astimezone(local_tz)
 
     await bot.send_message(
         chat_id=NOTIF_CHAT_ID,
@@ -67,7 +68,7 @@ async def event_is_member(event: ChatMemberUpdated, bot: Bot):
 async def event_is_not_admin(event: ChatMemberUpdated, bot: Bot):
     user = event.new_chat_member.user
     chat = event.chat
-    local_event_datetime = event.date.astimezone(utc_plus3)
+    local_event_datetime = event.date.astimezone(local_tz)
 
     await bot.send_message(
         chat_id=NOTIF_CHAT_ID,
@@ -85,7 +86,7 @@ async def event_is_not_admin(event: ChatMemberUpdated, bot: Bot):
 async def event_is_not_member(event: ChatMemberUpdated, bot: Bot):
     user = event.new_chat_member.user
     chat = event.chat
-    local_event_datetime = event.date.astimezone(utc_plus3)
+    local_event_datetime = event.date.astimezone(local_tz)
 
     await bot.send_message(
         chat_id=NOTIF_CHAT_ID,
