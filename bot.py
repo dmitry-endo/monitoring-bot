@@ -17,7 +17,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
 
-# setup the local timezone
+# Setup the local timezone
 local_tz = timezone(LOCAL_TZ)
 # Combines the path and the file name for easier configuration
 full_file_path = os.path.join(MESSAGE_IDS_FILE_PATH, MESSAGE_IDS_FILE)
@@ -137,26 +137,6 @@ async def startup_routine():
         logging.error(f"Failed to send startup status message: {e}")
 
     save_message_ids(message_ids)
-
-
-# Func to send status message with starting the bot instance
-# This functionality was moved to startup_routine()
-async def startup_status_message():
-    message_ids = load_message_ids()
-
-    try:
-        message = await bot.send_message(
-            chat_id=NOTIF_CHAT_ID,
-            text='Status: Restarted!'
-            # text="I'm alive now 😊"
-        )
-        logging.info(
-            f"Sent startup status message with ID {message.message_id} at {datetime.now(local_tz)}")
-
-        message_ids.append(message.message_id)
-        save_message_ids(message_ids)
-    except Exception as e:
-        logging.error(f"Failed to send startup status message: {e}")
 
 
 # Awaits startup_routine() and schedules the daily_status_messages() task
