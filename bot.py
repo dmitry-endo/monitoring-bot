@@ -21,7 +21,6 @@ logging.basicConfig(
 local_tz = timezone(LOCAL_TZ)
 # Combines the path and the file name for easier configuration
 full_file_path = os.path.join(MESSAGE_IDS_FILE_PATH, MESSAGE_IDS_FILE)
-
 # Init Bot and Dispatcher
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -35,9 +34,6 @@ def load_message_ids():
     # Creates the directory if it somehow doesn't exist in container
     if not os.path.exists(MESSAGE_IDS_FILE_PATH):
         os.makedirs(MESSAGE_IDS_FILE_PATH)
-
-    # Combines the path and the file name for easier configuration
-    # full_file_path = os.path.join(MESSAGE_IDS_FILE_PATH, MESSAGE_IDS_FILE)
 
     if os.path.exists(full_file_path):
         with open(full_file_path, 'r') as file:
@@ -53,7 +49,7 @@ def save_message_ids(message_ids):
 
 # Func for bot status messages every morning to make sure it's still running
 async def daily_status_messages():
-    # Load ids that have been stored
+    # Load IDs that have been stored
     message_ids = load_message_ids()
 
     while True:
@@ -67,6 +63,26 @@ async def daily_status_messages():
         wait_time = (target_time - now).total_seconds()
         await asyncio.sleep(wait_time)
 
+        # Checking if there's any messages for deletion before sending new one
+        if message_ids:
+            for msg_id in message_ids:
+                try:
+                    await bot.delete_message(
+                        chat_id=NOTIF_CHAT_ID,
+                        message_id=msg_id
+                    )
+                    logging.info(
+                        f"Deleted status message with ID {msg_id} at {datetime.now(local_tz)}")
+
+                    # message_ids.remove(msg_id)
+                except Exception as e:
+                    logging.error(
+                        f"Failed to delete status message with ID {msg_id}: {e}")
+
+            message_ids.clear()
+            save_message_ids(message_ids)
+
+        # Sending new status message
         try:
             message = await bot.send_message(
                 chat_id=NOTIF_CHAT_ID,
@@ -76,31 +92,28 @@ async def daily_status_messages():
             logging.info(
                 f"Sent status message with ID {message.message_id} at {datetime.now(local_tz)}")
 
-            # Message ID var
-            msg_id = message.message_id
-
             # Store newest message ID
-            message_ids.append(msg_id)
+            message_ids.append(message.message_id)
             save_message_ids(message_ids)
 
             # Setup the delay for message deletion
-            delete_msg_delay = timedelta(hours=23, minutes=55)
+            # delete_msg_delay = timedelta(hours=23, minutes=55)
 
-            # Schedule the message for deletion after delete_msg_delay value in seconds
-            await asyncio.sleep(delete_msg_delay.total_seconds())
-            await bot.delete_message(
-                chat_id=NOTIF_CHAT_ID,
-                message_id=msg_id
-            )
-            logging.info(
-                f"Deleted status message with ID {msg_id} at {datetime.now(local_tz)}")
+            # # Schedule the message for deletion after delete_msg_delay value in seconds
+            # await asyncio.sleep(delete_msg_delay.total_seconds())
+            # await bot.delete_message(
+            #     chat_id=NOTIF_CHAT_ID,
+            #     message_id=msg_id
+            # )
+            # logging.info(
+            #     f"Deleted status message with ID {msg_id} at {datetime.now(local_tz)}")
 
-            # Remove message ID from the list
-            message_ids.remove(msg_id)
-            save_message_ids(message_ids)
+            # # Remove message ID from the list
+            # message_ids.remove(msg_id)
+            # save_message_ids(message_ids)
         except Exception as e:
             logging.error(
-                f"Failed to send or delete status message: {e}")
+                f"Failed to send status message: {e}")
 
 
 # Clears all old status messages and sends new startup status message
@@ -114,7 +127,8 @@ async def startup_routine():
                 chat_id=NOTIF_CHAT_ID,
                 message_id=msg_id
             )
-            logging.info(f"Deleted old status message with ID {msg_id}")
+            logging.info(
+                f"Deleted old status message with ID {msg_id} at {datetime.now(local_tz)}")
         except Exception as e:
             logging.error(
                 f"Failed to delete old status message with ID {msg_id}: {e}")
